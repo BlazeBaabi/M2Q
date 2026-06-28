@@ -1,0 +1,12 @@
+{
+    "color": {
+        "bg": "#121212",
+        "bg2": "#045045",
+        "fg": "#00FFAB",
+        "fg2": "#045045",
+        "ibg": "0b0b0b",
+        "bbg": "0d0d0d"
+    },
+    "font": "Montserrat",
+    "midiOffset": -12
+}
