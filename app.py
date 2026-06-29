@@ -101,17 +101,18 @@ root.config(bg=settings["color"]["bg"])
 
 Bold16 = tkfont.Font(family=settings["font"], weight="bold", size=16)
 Regular16 = tkfont.Font(family=settings["font"], weight="normal", size=16)
+Regular12 = tkfont.Font(family=settings["font"], weight="normal", size=12)
 
 PixI = tk.PhotoImage(width=1, height=1)
 
 topBar = tk.Frame(root, bg=settings["color"]["bg2"], height=100)
-topBar.pack(fill=tk.X, side=tk.TOP)
+topBar.place(relwidth=1, relheight=0.04,rely=0,relx=0)
 
 def close():
     sys.exit(0)
 
 exitBtn = tk.Button(topBar, text="X", command=close, bg=settings["color"]["fg"], fg=settings["color"]["bg2"], image=PixI, compound="center", height=25, width=25, relief="flat", font=Bold16)
-exitBtn.pack(side=tk.RIGHT)
+exitBtn.pack(side=tk.RIGHT, padx=5)
 
 fullscreen = False
 def toggleFullscreen(event=None):
@@ -139,10 +140,13 @@ def toggleTerminal(event=None):
 root.bind("<F11>", toggleFullscreen)
 
 FSBtn = tk.Button(topBar, text="⤢", command=toggleFullscreen, bg=settings["color"]["fg"], fg=settings["color"]["bg2"], image=PixI, compound="center", height=25, width=25, relief="flat", font=Bold16)
-FSBtn.pack(side=tk.RIGHT)
+FSBtn.pack(side=tk.RIGHT, padx=5)
 
 title = tk.Label(topBar, text="M2Q", relief="flat", width=5, bg=settings["color"]["bg2"], fg=settings["color"]["fg"], font=Bold16)
 title.pack(side=tk.LEFT, fill=tk.Y)
+
+status = tk.Label(root, text="MIDI not connected", fg=settings["color"]["fg"], bg=settings["color"]["bg"], font=Regular12)
+status.place(relx=0.001, rely=0.05)
 
 terminal = tk.Frame(root, bg=settings["color"]["bg2"])
 terminal.place(relheight=0.2, relwidth=1, rely=0.80)
@@ -211,7 +215,7 @@ def midi_callback(hMidiIn, wMsg, dwInstance, dwParam1, dwParam2):
                 M4 = M3
                 M3 = M2
                 M2 = M1
-                M1 = f"🎵 MIDI: {raw_note} -> QWERTY: '{key_char.upper() if shift_required else key_char}' (Shift={shift_required})"
+                M1 = f"🎵Note: {calibrated_note} MIDI: {raw_note} -> QWERTY: '{key_char.upper() if shift_required else key_char}' (Shift={shift_required})"
                 T1.config(text=M1)
                 if M2:
                     T2.place(relheight=0.2, relwidth=0.998, relx=0.001, rely=0.22)
@@ -232,6 +236,20 @@ num_devices = winmm.midiInGetNumDevs()
 if num_devices == 0:
     print("Ingen MIDI-enheter funnet. Sjekk tilkoblingen.")
     exit()
+
+MAXPNAMELEN = 32
+class MIDIINCAPS(ctypes.Structure):
+    _fields_ = [
+        ("wMid", wintypes.WORD),
+        ("wPid", wintypes.WORD),
+        ("vDriverVersion", wintypes.DWORD),
+        ("szPname", ctypes.c_wchar * MAXPNAMELEN),
+        ("dwSupport", wintypes.DWORD)
+    ]
+
+caps = MIDIINCAPS()
+
+status.config(text=f"Connected: {caps.szPname}")
 
 hMidiIn = HMIDIIN()
 winmm.midiInOpen(ctypes.byref(hMidiIn), 0, midi_callback, 0, CALLBACK_FUNCTION)
